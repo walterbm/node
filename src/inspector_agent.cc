@@ -191,6 +191,8 @@ class AgentImpl {
   bool Start(v8::Platform* platform, const char* path, int port, bool wait);
   // Stop the inspector agent
   void Stop();
+  void contextCreated(const v8_inspector::V8ContextInfo& info);
+  void contextDestroyed(v8::Local<v8::Context> context);
 
   bool IsStarted();
   bool IsConnected() {  return state_ == State::kConnected; }
@@ -323,8 +325,15 @@ class V8NodeInspector : public v8_inspector::V8InspectorClient {
                     terminated_(false),
                     running_nested_loop_(false),
                     inspector_(V8Inspector::create(env->isolate(), this)) {
-    inspector_->contextCreated(
+    contextCreated(
         v8_inspector::V8ContextInfo(env->context(), 1, "NodeJS Main Context"));
+  }
+
+  void contextCreated(const v8_inspector::V8ContextInfo& info) {
+    inspector_->contextCreated(info);
+  }
+  void contextDestroyed(v8::Local<v8::Context> context) {
+    inspector_->contextDestroyed(context);
   }
 
   void runMessageLoopOnPause(int context_group_id) override {
@@ -508,6 +517,13 @@ void AgentImpl::Stop() {
   int err = uv_thread_join(&thread_);
   CHECK_EQ(err, 0);
   delete inspector_;
+}
+
+void AgentImpl::contextCreated(const v8_inspector::V8ContextInfo& info) {
+  inspector_->contextCreated(info);
+}
+void AgentImpl::contextDestroyed(v8::Local<v8::Context> context) {
+  inspector_->contextDestroyed(context);
 }
 
 bool AgentImpl::IsStarted() {
@@ -860,6 +876,13 @@ bool Agent::Start(v8::Platform* platform, const char* path,
 
 void Agent::Stop() {
   impl->Stop();
+}
+
+void Agent::contextCreated(const v8_inspector::V8ContextInfo& info) {
+  impl->contextCreated(info);
+}
+void Agent::contextDestroyed(v8::Local<v8::Context> context) {
+  impl->contextDestroyed(context);
 }
 
 bool Agent::IsStarted() {
