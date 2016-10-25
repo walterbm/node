@@ -212,9 +212,11 @@ class ContextifyContext {
 
     Local<Context> ctx = Context::New(env->isolate(), nullptr, object_template);
 #if HAVE_INSPECTOR
-    env->inspector_agent()->contextCreated(
-      v8_inspector::V8ContextInfo(ctx, 1, "vm Module Context")
-    );
+    if (env->inspector_agent()->IsStarted()) { 
+      env->inspector_agent()->contextCreated(
+        v8_inspector::V8ContextInfo(ctx, 1, "vm Module Context")
+      );
+    }
 #endif
 
     if (ctx.IsEmpty()) {
@@ -333,9 +335,11 @@ class ContextifyContext {
   static void WeakCallback(const WeakCallbackInfo<ContextifyContext>& data) {
     ContextifyContext* context = data.GetParameter();
 #if HAVE_INSPECTOR
-    context->env()->inspector_agent()->contextDestroyed(
-      context->context()
-    );
+    if (context->env()->inspector_agent()->IsStarted()) { 
+      context->env()->inspector_agent()->contextDestroyed(
+        context->context()
+      );
+    }
 #endif
     delete context;
   }

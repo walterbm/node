@@ -330,10 +330,10 @@ class V8NodeInspector : public v8_inspector::V8InspectorClient {
   }
 
   void contextCreated(const v8_inspector::V8ContextInfo& info) {
-    inspector_->contextCreated(info);
+    inspector()->contextCreated(info);
   }
   void contextDestroyed(v8::Local<v8::Context> context) {
-    inspector_->contextDestroyed(context);
+    inspector()->contextDestroyed(context);
   }
 
   void runMessageLoopOnPause(int context_group_id) override {
